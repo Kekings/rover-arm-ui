@@ -391,6 +391,19 @@ export function send(data){
 }
 
 /* ==========================================
+   Send Raw Text
+   Used by the Rover Arm's prefixed joystick stream.
+========================================== */
+
+export function sendRaw(data){
+
+    if(!socketConnected || !droneSocket || droneSocket.readyState !== WebSocket.OPEN)
+        return;
+
+    droneSocket.send(String(data));
+}
+
+/* ==========================================
 Disconnect
 ========================================== */
 

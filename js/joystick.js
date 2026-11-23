@@ -1,213 +1,169 @@
 import {sendJoystick} from "./commands.js";
 
 /* ==========================================
-   Left Joystick Controller
-   Part 1
+   Dual Joystick Controller
+   Each stick owns its pointer ID, geometry and output state.
 ========================================== */
 
-/* ==========================================
-   Elements
-========================================== */
-
-const joystick = document.querySelector("#left-joystick");
-const joystickBase = document.querySelector(".joystick-base");
-const stick = document.querySelector(".stick");
-
-const telemetryX = document.querySelector("#telemetry-x");
-const telemetryY = document.querySelector("#telemetry-y");
-
-/* ==========================================
-   Configuration
-========================================== */
-
-const MAX_DISTANCE = 45;
 const DEAD_ZONE = 5;
-const SPRING_SPEED = 0.18;
+const SPRING_DURATION_MS = 180;
+const EDGE_GAP = 4;
 
-/* ==========================================
-   Variables
-========================================== */
+function createJoystickController({rootId, side, telemetryXId, telemetryYId}){
+    const root = document.getElementById(rootId);
 
-let dragging = false;
-
-let centerX = 0;
-let centerY = 0;
-
-let currentX = 0;
-let currentY = 0;
-
-let joystickX = 0;
-let joystickY = 0;
-
-/* ==========================================
-   Initialize
-========================================== */
-
-function initializeJoystick(){
-
-    updateCenter();
-
-}
-
-window.addEventListener("load", initializeJoystick);
-window.addEventListener("resize", updateCenter);
-window.addEventListener("orientationchange", updateCenter);
-
-/* ==========================================
-   Update Center
-========================================== */
-
-function updateCenter(){
-
-    const rect = joystickBase.getBoundingClientRect();
-
-    centerX = rect.left + rect.width / 2;
-    centerY = rect.top + rect.height / 2;
-
-}
-
-/* ==========================================
-   Update Stick Position
-========================================== */
-
-function updateStick(){
-
-    stick.style.transform =
-        `translate(${currentX}px, ${currentY}px)`;
-
-}
-
-/* ==========================================
-   Update Telemetry
-========================================== */
-
-function updateTelemetry(){
-
-    telemetryX.textContent = joystickX;
-    telemetryY.textContent = joystickY;
-
-}
-
-/* ==========================================
-   Calculate Output
-========================================== */
-
-function calculateOutput(){
-
-    joystickX =
-        Math.round((currentX / MAX_DISTANCE) * 100);
-
-    joystickY =
-        Math.round((-currentY / MAX_DISTANCE) * 100);
-
-    if(Math.abs(joystickX) < DEAD_ZONE){
-
-        joystickX = 0;
-
+    if(!root){
+        console.error(`Joystick element #${rootId} was not found.`);
+        return null;
     }
 
-    if(Math.abs(joystickY) < DEAD_ZONE){
+    const base = root.querySelector(".joystick-base");
+    const stick = root.querySelector(".stick");
+    const telemetryX = telemetryXId ? document.getElementById(telemetryXId) : null;
+    const telemetryY = telemetryYId ? document.getElementById(telemetryYId) : null;
 
-        joystickY = 0;
-
+    if(!base || !stick){
+        console.error(`Joystick #${rootId} is missing its base or thumb stick.`);
+        return null;
     }
 
-}
+    let activePointerId = null;
+    let centerX = 0;
+    let centerY = 0;
+    let maxDistance = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let outputX = 0;
+    let outputY = 0;
+    let springTimer = null;
 
-/* ==========================================
-   Pointer Events
-========================================== */
+    function updateGeometry(){
+        const baseRect = base.getBoundingClientRect();
+        const stickRect = stick.getBoundingClientRect();
 
-joystick.addEventListener("pointerdown", startDrag);
+        centerX = baseRect.left + baseRect.width / 2;
+        centerY = baseRect.top + baseRect.height / 2;
 
-window.addEventListener("pointermove", dragJoystick);
-
-window.addEventListener("pointerup", stopDrag);
-
-window.addEventListener("pointercancel", stopDrag);
-
-/* ==========================================
-   Start Drag
-========================================== */
-
-function startDrag(event){
-
-    event.preventDefault();
-
-    updateCenter();
-
-    dragging = true;
-
-    stick.style.transition = "none";
-
-}
-
-
-/* ==========================================
-   Drag Joystick
-========================================== */
-
-function dragJoystick(event){
-
-    if(!dragging) return;
-
-    event.preventDefault();
-
-    let dx = event.clientX - centerX;
-    let dy = event.clientY - centerY;
-
-    const distance = Math.sqrt(dx * dx + dy * dy);
-
-    if(distance > MAX_DISTANCE){
-
-        const angle = Math.atan2(dy, dx);
-
-        dx = Math.cos(angle) * MAX_DISTANCE;
-        dy = Math.sin(angle) * MAX_DISTANCE;
-
+        const baseRadius = Math.min(baseRect.width, baseRect.height) / 2;
+        const stickRadius = Math.max(stickRect.width, stickRect.height) / 2;
+        maxDistance = Math.max(1, baseRadius - stickRadius - EDGE_GAP);
     }
 
-    currentX = dx;
-    currentY = dy;
+    function updateTelemetry(){
+        if(telemetryX) telemetryX.textContent = String(outputX);
+        if(telemetryY) telemetryY.textContent = String(outputY);
+    }
 
-    updateStick();
+    function calculateOutput(){
+        outputX = Math.round((currentX / maxDistance) * 100);
+        outputY = Math.round((-currentY / maxDistance) * 100);
 
-    calculateOutput();
+        outputX = Math.max(-100, Math.min(100, outputX));
+        outputY = Math.max(-100, Math.min(100, outputY));
 
-    updateTelemetry();
+        if(Math.abs(outputX) < DEAD_ZONE) outputX = 0;
+        if(Math.abs(outputY) < DEAD_ZONE) outputY = 0;
+    }
 
-    sendJoystick(joystickX, joystickY);
+    function updateStick(){
+        stick.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
+
+    function moveStick(event){
+        let dx = event.clientX - centerX;
+        let dy = event.clientY - centerY;
+        const distance = Math.hypot(dx, dy);
+
+        if(distance > maxDistance){
+            const scale = maxDistance / distance;
+            dx *= scale;
+            dy *= scale;
+        }
+
+        currentX = dx;
+        currentY = dy;
+
+        updateStick();
+        calculateOutput();
+        updateTelemetry();
+        sendJoystick(side, outputX, outputY);
+    }
+
+    function startDrag(event){
+        if(activePointerId !== null) return;
+        if(event.pointerType === "mouse" && event.button !== 0) return;
+
+        event.preventDefault();
+
+        if(springTimer){
+            clearTimeout(springTimer);
+            springTimer = null;
+        }
+
+        updateGeometry();
+        activePointerId = event.pointerId;
+        stick.style.transition = "none";
+        moveStick(event);
+    }
+
+    function drag(event){
+        if(activePointerId === null || event.pointerId !== activePointerId) return;
+        event.preventDefault();
+        moveStick(event);
+    }
+
+    function stopDrag(event){
+        if(activePointerId === null) return;
+        if(event && event.pointerId !== undefined && event.pointerId !== activePointerId) return;
+
+        activePointerId = null;
+        currentX = 0;
+        currentY = 0;
+        outputX = 0;
+        outputY = 0;
+
+        stick.style.transition = `transform ${SPRING_DURATION_MS}ms ease-out`;
+        updateStick();
+        updateTelemetry();
+        sendJoystick(side, 0, 0);
+
+        if(springTimer) clearTimeout(springTimer);
+        springTimer = setTimeout(()=>{
+            stick.style.transition = "";
+            springTimer = null;
+        }, SPRING_DURATION_MS);
+    }
+
+    root.addEventListener("pointerdown", startDrag);
+    window.addEventListener("pointermove", drag, {passive:false});
+    window.addEventListener("pointerup", stopDrag);
+    window.addEventListener("pointercancel", stopDrag);
+
+    return {stopDrag};
 }
 
-/* ==========================================
-   Stop Drag
-========================================== */
+const joystickControllers = [
+    createJoystickController({
+        rootId:"left-joystick",
+        side:"l",
+        telemetryXId:"telemetry-x",
+        telemetryYId:"telemetry-y"
+    }),
+    createJoystickController({
+        rootId:"right-joystick",
+        side:"r",
+        telemetryXId:"telemetry-right-x",
+        telemetryYId:"telemetry-right-y"
+    })
+].filter(Boolean);
 
-function stopDrag(){
+// If the page loses focus while a stick is held, send a safe neutral reading.
+window.addEventListener("blur", ()=>{
+    joystickControllers.forEach(controller => controller.stopDrag());
+});
 
-    if(!dragging) return;
-
-    dragging = false;
-
-    currentX = 0;
-    currentY = 0;
-
-    joystickX = 0;
-    joystickY = 0;
-
-    stick.style.transition =
-        `transform ${SPRING_SPEED}s ease-out`;
-
-    updateStick();
-
-    updateTelemetry();
-
-    sendJoystick(0, 0);
-
-    setTimeout(()=>{
-
-        stick.style.transition = "";
-
-    }, SPRING_SPEED * 1000);
-
-}
+document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden){
+        joystickControllers.forEach(controller => controller.stopDrag());
+    }
+});

@@ -1,57 +1,44 @@
 /* ==========================================
-   Action Buttons
+   New Programmable Face Buttons
 ========================================== */
 
-#action-buttons{
-    display:flex;
-    justify-content:center;
-    gap:14px;
-
-    order:1;
+#face-buttons{
+    width:clamp(128px, 14.2vw, 154px);
+    height:clamp(128px, 14.2vw, 154px);
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    grid-template-rows:repeat(3, 1fr);
+    justify-items:center;
+    align-items:center;
+    pointer-events:auto;
 }
 
-.action-button,
-.danger-button{
-    width:65px;
-    height:65px;
+#btn-y{grid-column:2;grid-row:1;}
+#btn-x{grid-column:1;grid-row:2;}
+#btn-b{grid-column:3;grid-row:2;}
+#btn-a{grid-column:2;grid-row:3;}
 
+.face-button{
+    width:clamp(39px, 4.4vw, 47px);
+    height:clamp(39px, 4.4vw, 47px);
     display:flex;
     justify-content:center;
     align-items:center;
-
-    border-radius:18px;
-
-    background:var(--panel);
-    border:1px solid var(--border);
-
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-
-    color:var(--text);
-
-    font-size:12px;
-    font-weight:700;
-    letter-spacing:.5px;
-
-    transition:var(--transition);
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.20);
+    color:#fff;
+    font-size:13px;
+    font-weight:900;
+    letter-spacing:.02em;
+    box-shadow:0 5px 10px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.18);
+    cursor:pointer;
+    transition:transform .12s ease, filter .12s ease;
+    touch-action:none;
 }
 
-.action-button{
-    background:rgba(255,179,0,.18);
-    border-color:rgba(255,179,0,.45);
-}
-
-.danger-button{
-    background:rgba(255,59,48,.18);
-    border-color:rgba(255,59,48,.45);
-}
-
-.action-button:hover,
-.danger-button:hover{
-    transform:translateY(-3px) scale(1.05);
-}
-
-.action-button:active,
-.danger-button:active{
-    transform:scale(.95);
-}
+.face-button:hover{filter:brightness(1.14);}
+.face-button:active{transform:translateY(2px) scale(.94);}
+.face-button--y{background:linear-gradient(145deg, #d6a93d, #8a6424);}
+.face-button--x{background:linear-gradient(145deg, #428acb, #24527e);}
+.face-button--b{background:linear-gradient(145deg, #d85d5d, #8f353e);}
+.face-button--a{background:linear-gradient(145deg, #55ad78, #286849);}

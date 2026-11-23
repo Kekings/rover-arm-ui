@@ -217,17 +217,30 @@ window.addEventListener("drone-connected", connectionSuccess);
 window.addEventListener("drone-disconnected", connectionFailed);
 window.addEventListener("drone-reconnecting", reconnecting);
 
+
 /* ==========================================
    Button Events
 ========================================== */
 
-connectButton.addEventListener("click", connect);
+// TEMPORARY: Bypass connection and enter UI directly
+connectButton.addEventListener("click", () => {
+
+    scanning = false;
+
+    connectionScreen.classList.remove("active");
+    flightScreen.classList.add("active");
+
+    document.querySelector("#connection-status").textContent =
+        "⚪ Offline";
+
+});
+
+// Original connection method (restore later)
+// connectButton.addEventListener("click", connect);
 
 scanButton.addEventListener("click", autoScan);
 disconnectButton.addEventListener("click", disconnectDrone);
 
-controllerDefault.addEventListener("change", updateDefaultInputs);
-cameraDefault.addEventListener("change", updateDefaultInputs);
 
 /* ==========================================
    Initialize

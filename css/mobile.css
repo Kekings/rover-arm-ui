@@ -3,168 +3,98 @@
 ========================================== */
 
 @media screen and (max-width:1024px){
-
-    html,
-    body{
-
+    html,body{
         width:100%;
         height:100dvh;
-
         overflow:hidden;
-
         touch-action:manipulation;
-
     }
 
-    #app{
-
+    #app,#flight-screen,#video-container{
         width:100%;
         height:100dvh;
-
     }
-
-    #flight-screen{
-
-        width:100%;
-        height:100dvh;
-
-    }
-
-    #video-container{
-
-        width:100%;
-        height:100%;
-
-    }
-
 }
 
 /* ==========================================
-   Landscape
+   Landscape Gamepad Layout
 ========================================== */
 
 @media screen and (max-width:1024px) and (orientation:landscape){
+    #top-bar{top:8px;left:9px;right:9px;}
+    .status-group{gap:6px;}
+    .status-pill{min-width:76px;height:32px;padding:0 9px;font-size:10px;}
+    #menu-button{width:40px;height:40px;font-size:18px;}
 
-    #top-bar{
-
-        top:10px;
-        left:10px;
-        right:10px;
-
+    #gamepad-shell{
+        left:50%;
+        bottom:7px;
+        width:calc(100% - 16px);
+        height:clamp(174px, 58vh, 218px);
+        min-height:174px;
+        grid-template-columns:minmax(0,1fr) 100px minmax(0,1fr);
+        gap:4px;
+        padding:8px 10px 7px;
+        border-radius:55px 55px 36px 36px / 45px 45px 30px 30px;
     }
 
-    .status-pill{
+    .joystick{--joystick-size:clamp(106px, 27vh, 132px);--stick-size:clamp(39px, 10vh, 48px);}
+    .joystick-block{gap:2px;}
+    .joystick-label{font-size:7px;letter-spacing:.09em;}
+    .joystick-label span{font-size:6px;}
 
-        min-width:90px;
+    #dpad{width:clamp(112px, 30vh, 136px);height:clamp(112px, 30vh, 136px);}
+    .control-button{width:clamp(34px, 9.5vh, 41px);height:clamp(34px, 9.5vh, 41px);border-radius:9px;font-size:14px;}
+    #face-buttons{width:clamp(112px, 30vh, 136px);height:clamp(112px, 30vh, 136px);}
+    .face-button{width:clamp(34px, 9.3vh, 41px);height:clamp(34px, 9.3vh, 41px);font-size:11px;}
 
-        height:36px;
+    #controller-center{gap:6px;padding:3px 4px;}
+    .gamepad-brand{gap:2px;}
+    .gamepad-brand-mark{font-size:7px;}
+    .gamepad-brand-name{font-size:7px;letter-spacing:.08em;}
+    .dpad-center{width:43px;height:43px;font-size:6px;}
 
-        font-size:12px;
-
-        padding:0 12px;
-
-    }
-
-    #menu-button{
-
-        width:46px;
-        height:46px;
-
-        font-size:20px;
-
-    }
-
-    #left-panel{
-
-        left:12px;
-        bottom:12px;
-
-    }
-
-    #right-panel{
-
-        right:12px;
-        bottom:12px;
-
-    }
-
-    .joystick{
-
-        width:170px;
-        height:170px;
-
-    }
-
-    .joystick-ring{
-
-        width:170px;
-        height:170px;
-
-    }
-
-    .joystick-base{
-
-        width:135px;
-        height:135px;
-
-    }
-
-    .joystick-guide{
-
-        width:105px;
-        height:105px;
-
-    }
-
-    #dpad{
-
-        width:180px;
-        height:180px;
-
-    }
-
+    #telemetry{top:48px;gap:8px;min-height:30px;padding:4px 9px;}
+    .telemetry-item{gap:5px;font-size:8px;}
+    .telemetry-label{font-size:7px;}
+    .telemetry-value{font-size:8px;}
 }
 
 /* ==========================================
-   Portrait Mode
+   Compact Landscape Devices
+========================================== */
+
+@media screen and (max-width:700px) and (orientation:landscape){
+    #gamepad-shell{
+        grid-template-columns:minmax(0,1fr) 88px minmax(0,1fr);
+        padding-left:6px;
+        padding-right:6px;
+        width:calc(100% - 10px);
+    }
+    #telemetry{top:44px;}
+}
+
+/* ==========================================
+   Portrait Mode - keep the existing landscape-first behaviour
 ========================================== */
 
 @media screen and (max-width:1024px) and (orientation:portrait){
-
-    #flight-screen{
-
-        display:none;
-
-    }
+    #flight-screen{display:none;}
 
     body::before{
-
-        content:"🔄 Rotate your device\A\AThis Ground Control Station is designed for Landscape Mode.";
-
+        content:"🔄 Rotate your device\A\AThis Rover Arm Control Station is designed for landscape mode.";
         white-space:pre-wrap;
-
         position:fixed;
-
         inset:0;
-
         display:flex;
-
         justify-content:center;
         align-items:center;
-
         text-align:center;
-
         padding:40px;
-
-        font-size:24px;
+        font-size:22px;
         font-weight:600;
-
         color:white;
-
         background:#0f1117;
-
         z-index:99999;
-
     }
-
 }

@@ -2,20 +2,24 @@
    Imports
 ========================================== */
 
-import {send} from "./websocket.js";
+import {send, sendRaw} from "./websocket.js";
 
 /* ==========================================
    Joystick
 ========================================== */
 
-export function sendJoystick(x, y){
+export function sendJoystick(side, x, y){
 
-    send({
-        type: "joystick",
-        x,
-        y
-    });
+    if(side !== "l" && side !== "r"){
+        console.error("Invalid joystick side. Expected 'l' or 'r'.", side);
+        return;
+    }
 
+    const safeX = Math.max(-100, Math.min(100, Math.round(Number(x) || 0)));
+    const safeY = Math.max(-100, Math.min(100, Math.round(Number(y) || 0)));
+
+    // Wire format: l,x,y for the left stick; r,x,y for the right stick.
+    sendRaw(`${side},${safeX},${safeY}`);
 }
 
 /* ==========================================

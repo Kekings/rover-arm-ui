@@ -9,7 +9,7 @@
                 maximum-scale=1,
                 user-scalable=no,
                 viewport-fit=cover">
-    <title>Drone Ground Control Station</title>
+    <title>Rover Arm Control Station</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
@@ -23,87 +23,109 @@
 
     </section>
 
-    <!-- ================= Connection Screen ================= -->
+    <!-- ================= Rover Arm Connection Screen ================= -->
     <section id="connection-screen" class="screen active">
         <div id="connection-container">
             <div class="connection-card">
-                <h1 class="connection-title">
-                    🚁 CARF Ground Control Station
-                </h1>
+
+                <header class="connection-header">
+                    <div class="connection-brand-mark" aria-hidden="true">🤖</div>
+                    <div class="connection-brand-copy">
+                        <p class="connection-kicker">CARF · ROBOTICS</p>
+                        <h1 class="connection-title">ROVER ARM</h1>
+                    </div>
+                    <span class="connection-header-tag">CONTROL STATION</span>
+                </header>
+
                 <p class="connection-subtitle">
-                    Connect to your Flight Controller and Camera
+                    Configure your controller and camera connection.
                 </p>
-                <!-- Flight Controller -->
-                <div class="connection-group">
-                    <h3>Flight Controller</h3>
-                    <label class="checkbox-row">
-                        <input type="checkbox" id="controller-default" checked>
-                        Use Default
-                    </label>
-    
-                    <input
-                        type="text"
-                        id="controller-ip"
-                        value="192.168.137.100"
-                        placeholder="Controller IP">
-    
-                    <input
-                        type="number"
-                        id="controller-port"
-                        value="81"
-                        placeholder="Port">
-    
+
+                <div class="connection-config-grid">
+                    <!-- Rover Arm Controller -->
+                    <div class="connection-group">
+                        <h3>
+                            <span class="connection-section-number">01</span>
+                            Rover Arm Controller
+                        </h3>
+
+                        <label class="checkbox-row" for="controller-default">
+                            <input type="checkbox" id="controller-default" checked>
+                            <span>Use default settings</span>
+                        </label>
+
+                        <div class="connection-field-grid">
+                            <label class="connection-field" for="controller-ip">
+                                <span>Controller IP</span>
+                                <input
+                                    type="text"
+                                    id="controller-ip"
+                                    value="192.168.137.100"
+                                    placeholder="Controller IP">
+                            </label>
+
+                            <label class="connection-field" for="controller-port">
+                                <span>Port</span>
+                                <input
+                                    type="number"
+                                    id="controller-port"
+                                    value="81"
+                                    placeholder="Port">
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- ESP32 Camera -->
+                    <div class="connection-group">
+                        <h3>
+                            <span class="connection-section-number">02</span>
+                            ESP32 Camera
+                        </h3>
+
+                        <label class="checkbox-row" for="camera-default">
+                            <input type="checkbox" id="camera-default">
+                            <span>Use default settings</span>
+                        </label>
+
+                        <div class="connection-field-grid connection-camera-fields">
+                            <label class="connection-field" for="camera-ip">
+                                <span>Camera IP</span>
+                                <input
+                                    type="text"
+                                    id="camera-ip"
+                                    value="192.168.137.101"
+                                    placeholder="Camera IP">
+                            </label>
+
+                            <label class="connection-field" for="camera-stream-path">
+                                <span>Stream path</span>
+                                <input
+                                    type="text"
+                                    id="camera-stream-path"
+                                    value="/stream"
+                                    placeholder="/stream">
+                            </label>
+                        </div>
+                    </div>
                 </div>
-    
-                <!-- Camera -->
 
-                <div class="connection-group">
-                    <h3>ESP32 Camera</h3>
-
-                    <label class="checkbox-row">
-                        <input type="checkbox" id="camera-default">
-                        Use Default
-                    </label>
-
-                    <input
-                        type="text"
-                        id="camera-ip"
-                        value="192.168.137.101"
-                        placeholder="Camera IP">
-
-                    <input
-                        type="text"
-                        id="camera-stream-path"
-                        value="/stream"
-                        placeholder="/stream">
+                <!-- Connection Status -->
+                <div class="connection-status-row">
+                    <span class="connection-status-label">CONNECTION STATUS</span>
+                    <div id="connection-status-text">🔴 Not Connected</div>
                 </div>
-    
-                <!-- Status -->
-    
-                <div id="connection-status-text">
-                    🔴 Not Connected
-                </div>
-    
-                <!-- Buttons -->
+
+                <!-- Existing connection actions -->
                 <div class="connection-buttons">
-
-                    <button id="connect-button">
-                        CONNECT
-                    </button>
-
-                    <button id="scan-button">
-                        AUTO SCAN
-                    </button>
-
+                    <button id="connect-button" type="button">CONNECT</button>
+                    <button id="scan-button" type="button">AUTO SCAN</button>
                 </div>
 
                 <div class="disconnect-row">
-
-                    <button id="disconnect-button">
-                        DISCONNECT
-                    </button>
-
+                    <button id="disconnect-button" type="button">DISCONNECT</button>
                 </div>
+
+                <p class="connection-footer">CARF · ROVER ARM CONTROL INTERFACE</p>
             </div>
         </div>
     </section>
@@ -465,7 +487,7 @@
             <img
                 id="camera-stream"
                 src=""
-                alt="Drone Camera"
+                alt="Rover Arm Camera"
                 style="display:none;">
 
             <!-- Placeholder Video -->
@@ -509,66 +531,88 @@
                     ☰
                 </button>
             </header>
-            <!-- ================= Telemetry ================= -->
-            <div id="telemetry">
+            <!-- ================= Joystick Telemetry ================= -->
+            <div id="telemetry" aria-label="Joystick position telemetry">
                 <div class="telemetry-item">
-                    X : <span id="telemetry-x">0</span>
+                    <span class="telemetry-label">LEFT</span>
+                    <span class="telemetry-value">X <span id="telemetry-x">0</span></span>
+                    <span class="telemetry-value">Y <span id="telemetry-y">0</span></span>
                 </div>
+                <span class="telemetry-divider" aria-hidden="true"></span>
                 <div class="telemetry-item">
-                    Y : <span id="telemetry-y">0</span>
+                    <span class="telemetry-label">RIGHT</span>
+                    <span class="telemetry-value">X <span id="telemetry-right-x">0</span></span>
+                    <span class="telemetry-value">Y <span id="telemetry-right-y">0</span></span>
                 </div>
-            </div> 
-            <!-- ================= Crosshair ================= -->
-            <div id="crosshair">
-                +
             </div>
-            <!-- ================= Left Panel ================= -->
-            <div id="left-panel">
-                <div id="left-joystick" class="joystick">
-                    <div class="joystick-ring">
-                        <div class="joystick-base">
-                            <div class="joystick-guide"></div>
-                            <div class="stick">
-                                <div class="stick-top"></div>
+
+            <!-- ================= Crosshair ================= -->
+            <div id="crosshair" aria-hidden="true">+</div>
+
+            <!-- ================= Rover Arm Gamepad ================= -->
+            <div id="gamepad-shell" aria-label="Rover Arm gamepad controls">
+
+                <!-- Left controller half: base/gripper D-pad + wrist stick -->
+                <div id="left-panel" class="gamepad-side gamepad-side--left">
+                    <div id="dpad" aria-label="Base and gripper directional controls" aria-hidden="false">
+                        <button type="button" class="control-button" id="btn-up" aria-label="Move up">▲</button>
+                        <button type="button" class="control-button" id="btn-left" aria-label="Move left">◀</button>
+                        <div class="dpad-hub" aria-hidden="true"></div>
+                        <button type="button" class="control-button" id="btn-right" aria-label="Move right">▶</button>
+                        <button type="button" class="control-button" id="btn-down" aria-label="Move down">▼</button>
+                    </div>
+
+                    <div class="joystick-block joystick-block--left">
+                        <div id="left-joystick" class="joystick" data-joystick-side="l" aria-label="Left joystick, wrist positioning">
+                            <div class="joystick-ring">
+                                <div class="joystick-base">
+                                    <div class="joystick-guide"></div>
+                                    <div class="stick"><div class="stick-top"></div></div>
+                                </div>
                             </div>
                         </div>
+                        <span class="joystick-label">LEFT STICK <span>WRIST X / Y</span></span>
                     </div>
                 </div>
-            </div>
-            <!-- ================= Right Panel ================= -->
-            <div id="right-panel">
-                <!-- Direction Pad -->
-                <div id="dpad">
-                    <button class="control-button" id="btn-up">
-                        ▲
-                    </button>
-                    <div class="dpad-middle">
-                        <button class="control-button" id="btn-left">
-                            ◀
-                        </button>
 
-                        <div class="dpad-center" id="btn-arm">
+                <!-- Centre controls: CARF branding and existing arm/disarm control -->
+                <div id="controller-center">
+                    <div class="gamepad-brand">
+                        <span class="gamepad-brand-mark">CARF</span>
+                        <span class="gamepad-brand-name">ROVER ARM</span>
+                    </div>
+
+                    <div class="gamepad-arm-control">
+                        <button type="button" class="dpad-center arm-button disarmed" id="btn-arm" aria-expanded="true" aria-label="Short press to show or hide the left directional buttons. Press and hold to arm or disarm.">
                             <span id="arm-status-text">DISARMED</span>
-                        </div>
-                        
-                        <button class="control-button" id="btn-right">
-                            ▶
                         </button>
                     </div>
-                    <button class="control-button" id="btn-down">
-                        ▼
-                    </button>
+
                 </div>
-                <!-- Action Buttons -->
-                <div id="action-buttons">
-                    <button class="action-button" id="btn-land">
-                        LAND
-                    </button>
-                    <button class="danger-button" id="btn-stop">
-                        STOP
-                    </button>
+
+                <!-- Right controller half: future face buttons + second joystick -->
+                <div id="right-panel" class="gamepad-side gamepad-side--right">
+                    <div id="face-buttons" aria-label="Additional programmable buttons">
+                        <button type="button" class="face-button face-button--y" id="btn-y" aria-label="Y button, unassigned">Y</button>
+                        <button type="button" class="face-button face-button--x" id="btn-x" aria-label="X button, unassigned">X</button>
+                        <button type="button" class="face-button face-button--b" id="btn-b" aria-label="B button, unassigned">B</button>
+                        <button type="button" class="face-button face-button--a" id="btn-a" aria-label="A button, unassigned">A</button>
+                    </div>
+
+                    <div class="joystick-block joystick-block--right">
+                        <div id="right-joystick" class="joystick" data-joystick-side="r" aria-label="Right joystick, auxiliary positioning">
+                            <div class="joystick-ring">
+                                <div class="joystick-base">
+                                    <div class="joystick-guide"></div>
+                                    <div class="stick"><div class="stick-top"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="joystick-label">RIGHT STICK <span>AUXILIARY X / Y</span></span>
+                    </div>
                 </div>
             </div>
+
         </div>
 
         <!-- Thermal Camera Overlay -->
@@ -833,7 +877,7 @@
 <aside id="side-menu">
 
     <div class="menu-header">
-        🚁 Drone Ground Control
+        🤖 Rover Arm Control Station
     </div>
 
     <div class="menu-items">

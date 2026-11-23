@@ -3,7 +3,7 @@
 ========================================== */
 
 let cameraEnabled = false;
-let cameraMode = "live";
+let cameraMode = "placeholder";
 // live | placeholder
 
 let camSocket = null;
