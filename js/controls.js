@@ -226,10 +226,37 @@ function cancelPress(event){
 
 }
 
-armButton.addEventListener("pointerdown", startPress);
-armButton.addEventListener("pointerup", finishPress);
-armButton.addEventListener("pointercancel", cancelPress);
-armButton.addEventListener("lostpointercapture", cancelPress);
+/*
+   Capture the Arm/Disarm pointer at window level. This allows a second
+   finger to operate this button while either joystick already owns another
+   active pointer, and avoids depending on the button's bubble-phase events.
+*/
+function eventBelongsToArmButton(event){
+    if(typeof event.composedPath === "function")
+        return event.composedPath().includes(armButton);
+
+    return event.target === armButton || armButton.contains(event.target);
+}
+
+window.addEventListener("pointerdown", (event)=>{
+    if(eventBelongsToArmButton(event))
+        startPress(event);
+}, true);
+
+window.addEventListener("pointerup", (event)=>{
+    if(activePointerId !== null && event.pointerId === activePointerId)
+        finishPress(event);
+}, true);
+
+window.addEventListener("pointercancel", (event)=>{
+    if(activePointerId !== null && event.pointerId === activePointerId)
+        cancelPress(event);
+}, true);
+
+window.addEventListener("lostpointercapture", (event)=>{
+    if(activePointerId !== null && event.pointerId === activePointerId)
+        cancelPress(event);
+}, true);
 
 // Keyboard activation remains a short press that toggles the left D-pad.
 armButton.addEventListener("keydown", (event)=>{

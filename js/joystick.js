@@ -102,6 +102,17 @@ function createJoystickController({rootId, side, telemetryXId, telemetryYId}){
 
         updateGeometry();
         activePointerId = event.pointerId;
+
+        // Each stick captures only its own pointer. A second finger can still
+        // operate Arm/Disarm or the other joystick independently.
+        if(typeof root.setPointerCapture === "function"){
+            try{
+                root.setPointerCapture(event.pointerId);
+            } catch(error){
+                // The window-level pointer listeners remain as a fallback.
+            }
+        }
+
         stick.style.transition = "none";
         moveStick(event);
     }
@@ -135,6 +146,7 @@ function createJoystickController({rootId, side, telemetryXId, telemetryYId}){
     }
 
     root.addEventListener("pointerdown", startDrag);
+    root.addEventListener("lostpointercapture", stopDrag);
     window.addEventListener("pointermove", drag, {passive:false});
     window.addEventListener("pointerup", stopDrag);
     window.addEventListener("pointercancel", stopDrag);
