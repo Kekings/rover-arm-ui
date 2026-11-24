@@ -24,8 +24,9 @@
 
     #gamepad-shell{
         --controller-stick-size:clamp(106px, 27vh, 132px);
-        --stick-inner-inset:clamp(18px, 2.4vw, 26px);
-        --stick-outer-inset:clamp(10px, 1.5vw, 16px);
+        --stick-inner-inset:clamp(26px, 3vw, 34px);
+        --stick-outer-inset:clamp(20px, 2.8vw, 28px);
+        --controller-button-top:-8px;
     }
     #top-bar{top:8px;left:9px;right:9px;}
     .status-group{gap:6px;}
