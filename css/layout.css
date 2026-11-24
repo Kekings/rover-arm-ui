@@ -37,6 +37,12 @@
 ========================================== */
 
 #gamepad-shell{
+    /* Shared geometry keeps each stick's corner-to-corner movement aligned. */
+    --controller-stick-size:clamp(116px, 13.2vw, 146px);
+    --stick-inner-inset:clamp(18px, 2.2vw, 28px);
+    --stick-outer-inset:clamp(10px, 1.4vw, 18px);
+    --controller-button-top:-2px;
+
     position:absolute;
     left:50%;
     bottom:clamp(10px, 2.4vh, 24px);
@@ -72,43 +78,56 @@
     pointer-events:none;
 }
 
-.gamepad-side--left #dpad{
+/* ==========================================
+   Button Clusters + Dual Joystick Positions
+========================================== */
+
+.gamepad-side--left #dpad,
+.gamepad-side--right #face-buttons{
     position:absolute;
-    left:0;
-    top:7px;
+    top:var(--controller-button-top);
     transition:opacity .18s ease, transform .18s ease, visibility .18s ease;
 }
 
-.gamepad-side--left .joystick-block{
-    position:absolute;
-    right:0;
-    bottom:4px;
-    transition:left .22s ease, right .22s ease;
-}
-
-/* When the left controls are hidden, slide the left stick outboard. */
-.gamepad-side--left.left-controls-hidden #dpad{
-    opacity:0;
-    visibility:hidden;
-    pointer-events:none;
-    transform:scale(.88);
-}
-
-.gamepad-side--left.left-controls-hidden .joystick-block--left{
+.gamepad-side--left #dpad{
     left:0;
-    right:auto;
 }
 
 .gamepad-side--right #face-buttons{
-    position:absolute;
     right:0;
-    top:7px;
 }
 
-.gamepad-side--right .joystick-block{
+/* The sticks sit slightly farther apart in the normal layout. */
+.gamepad-side--left .joystick-block--left{
     position:absolute;
-    left:0;
+    left:calc(100% - var(--controller-stick-size) - var(--stick-inner-inset));
     bottom:4px;
+    transition:left .24s cubic-bezier(.2,.75,.25,1);
+}
+
+.gamepad-side--right .joystick-block--right{
+    position:absolute;
+    left:var(--stick-inner-inset);
+    bottom:4px;
+    transition:left .24s cubic-bezier(.2,.75,.25,1);
+}
+
+/* A short tap hides both button clusters and sends the sticks to the lower
+   outer corners. They stay below the button areas, never occupying them. */
+#gamepad-shell.control-clusters-hidden #dpad,
+#gamepad-shell.control-clusters-hidden #face-buttons{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transform:translateY(-7px) scale(.92);
+}
+
+#gamepad-shell.control-clusters-hidden .gamepad-side--left .joystick-block--left{
+    left:var(--stick-outer-inset);
+}
+
+#gamepad-shell.control-clusters-hidden .gamepad-side--right .joystick-block--right{
+    left:calc(100% - var(--controller-stick-size) - var(--stick-outer-inset));
 }
 
 /* ==========================================

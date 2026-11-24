@@ -76,16 +76,17 @@ bindHold(leftButton, sendYawLeft);
 bindHold(rightButton, sendYawRight);
 
 /* ==========================================
-   Arm / Disarm + Left D-Pad Visibility
-   Short press: toggle the four left-side controls.
+   Arm / Disarm + Controller Button Visibility
+   Short press: toggle both four-button clusters.
    Hold 1 second: arm. Hold 2 seconds while armed: disarm.
 ========================================== */
 
 const ARM_HOLD_MS = 1000;
 const DISARM_HOLD_MS = 2000;
 
-const leftPanel = document.querySelector("#left-panel");
+const gamepadShell = document.querySelector("#gamepad-shell");
 const dpad = document.querySelector("#dpad");
+const faceButtons = document.querySelector("#face-buttons");
 
 let isArmed = false;
 let pressTimer = null;
@@ -93,11 +94,17 @@ let pressEligible = false;
 let activePointerId = null;
 let awaitingCommand = null; // "arm" | "disarm" | null
 
-function toggleLeftControls(){
+function toggleControllerButtons(){
 
-    const hidden = leftPanel.classList.toggle("left-controls-hidden");
+    const hidden = gamepadShell.classList.toggle("control-clusters-hidden");
 
     dpad.setAttribute("aria-hidden", String(hidden));
+    faceButtons.setAttribute("aria-hidden", String(hidden));
+
+    // Prevent keyboard focus from entering button clusters while they are hidden.
+    dpad.inert = hidden;
+    faceButtons.inert = hidden;
+
     armButton.setAttribute("aria-expanded", String(!hidden));
 
 }
@@ -195,7 +202,7 @@ function finishPress(event){
     armButton.classList.remove("holding");
 
     if(wasShortPress && !awaitingCommand)
-        toggleLeftControls();
+        toggleControllerButtons();
 
 }
 
@@ -232,7 +239,7 @@ armButton.addEventListener("keydown", (event)=>{
 
     event.preventDefault();
     if(!awaitingCommand)
-        toggleLeftControls();
+        toggleControllerButtons();
 
 });
 

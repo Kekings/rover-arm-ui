@@ -21,6 +21,12 @@
 ========================================== */
 
 @media screen and (max-width:1024px) and (orientation:landscape){
+
+    #gamepad-shell{
+        --controller-stick-size:clamp(106px, 27vh, 132px);
+        --stick-inner-inset:clamp(18px, 2.4vw, 26px);
+        --stick-outer-inset:clamp(10px, 1.5vw, 16px);
+    }
     #top-bar{top:8px;left:9px;right:9px;}
     .status-group{gap:6px;}
     .status-pill{min-width:76px;height:32px;padding:0 9px;font-size:10px;}
