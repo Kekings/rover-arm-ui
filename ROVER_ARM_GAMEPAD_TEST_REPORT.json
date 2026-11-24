@@ -1,0 +1,80 @@
+{
+  "result": "passed",
+  "html": {
+    "total_ids": 169,
+    "duplicate_ids": [],
+    "all_original_ids_preserved": true,
+    "original_connection_inputs_and_buttons_preserved": true,
+    "new_elements": [
+      "right-joystick",
+      "btn-a",
+      "btn-b",
+      "btn-x",
+      "btn-y",
+      "telemetry-right-x",
+      "telemetry-right-y"
+    ]
+  },
+  "wiring": {
+    "controls_js_modified": false,
+    "connection_js_modified": false,
+    "app_js_modified": false,
+    "style_css_modified": false,
+    "existing_button_ids_preserved": true,
+    "existing_json_command_sender_preserved": true
+  },
+  "joystick_protocol": {
+    "left": "l,x,y",
+    "right": "r,x,y",
+    "values": "integer range -100 to 100",
+    "release": "each stick sends its own zero frame"
+  },
+  "tests": [
+    {
+      "test": "JavaScript module syntax check for joystick.js, commands.js, websocket.js",
+      "result": "passed"
+    },
+    {
+      "test": "HTML unique IDs and preservation of all original IDs",
+      "result": "passed"
+    },
+    {
+      "test": "Left and right joystick simultaneous pointer simulation with independent pointer IDs",
+      "result": "passed"
+    },
+    {
+      "test": "Desktop mouse drag on left joystick",
+      "result": "passed"
+    },
+    {
+      "test": "Existing D-pad command handlers after relocation",
+      "result": "passed"
+    },
+    {
+      "test": "Existing Land and Emergency Stop click handlers after relocation",
+      "result": "passed"
+    },
+    {
+      "test": "Existing Arm long-press handler after relocation",
+      "result": "passed"
+    },
+    {
+      "test": "Raw joystick frames and existing JSON WebSocket frames",
+      "result": "passed"
+    },
+    {
+      "test": "Desktop and landscape viewport layout bounds",
+      "result": "passed",
+      "viewports": [
+        "1365x768",
+        "915x412",
+        "740x360"
+      ]
+    },
+    {
+      "test": "User text selection prevention and joystick touch-action CSS",
+      "result": "passed"
+    }
+  ],
+  "not_tested": "Live communication with the user's ROS 2 bridge and physical Android device; those require the user's runtime environment."
+}
