@@ -2,7 +2,7 @@
    Imports
 ========================================== */
 
-import {send, sendRaw} from "./websocket.js";
+import {send} from "./websocket.js";
 
 /* ==========================================
    Joystick
@@ -18,8 +18,14 @@ export function sendJoystick(side, x, y){
     const safeX = Math.max(-100, Math.min(100, Math.round(Number(x) || 0)));
     const safeY = Math.max(-100, Math.min(100, Math.round(Number(y) || 0)));
 
-    // Wire format: l,x,y for the left stick; r,x,y for the right stick.
-    sendRaw(`${side},${safeX},${safeY}`);
+    // Send both sticks as JSON so the ROS 2 node can parse every message.
+    // The side field preserves which joystick generated this reading.
+    send({
+        type: "joystick",
+        side: side,
+        x: safeX,
+        y: safeY
+    });
 }
 
 /* ==========================================
