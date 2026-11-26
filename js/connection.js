@@ -8,8 +8,8 @@ import {connectWebSocket, disconnect} from "./websocket.js";
    Default Values
 ========================================== */
 
-const DEFAULT_CONTROLLER_IP = "10.76.74.100";
-const DEFAULT_CONTROLLER_PORT = "81";
+const DEFAULT_CONTROLLER_IP = "";
+const DEFAULT_CONTROLLER_PORT = "5555";
 
 const DEFAULT_CAMERA_IP = "10.76.74.101";
 const DEFAULT_CAMERA_STREAM = "/stream";
@@ -93,14 +93,21 @@ function updateDefaultInputs(){
    Connect
 ========================================== */
 
-function connect(){
+function connect(scanningAttempt = false){
 
     const ip = controllerIp.value.trim();
     const port = controllerPort.value.trim();
 
-    statusText.textContent = "🟡 Connecting...";
+    if(!ip || !port){
+        statusText.textContent = "🔴 Enter ROS 2 PC IP and port";
+        return;
+    }
 
-    connectWebSocket(ip, port);
+    statusText.textContent = scanningAttempt
+        ? `🔍 Trying ${ip}:${port}...`
+        : "🟡 Connecting to ROS 2 node...";
+
+    connectWebSocket(ip, port, scanningAttempt);
 
 }
 
@@ -136,15 +143,16 @@ async function autoScan(){
 
     const parts = controllerIp.value.trim().split(".");
 
-    if(parts.length !== 4){
+    if(parts.length !== 4 || parts.some(part => part === "" || !/^\d+$/.test(part) || Number(part) > 255)){
 
-        statusText.textContent = "🔴 Invalid IP";
+        statusText.textContent = "🔴 Enter a valid subnet IP first";
         scanning = false;
         return;
 
     }
 
     const subnet = `${parts[0]}.${parts[1]}.${parts[2]}.`;
+    const originalIp = controllerIp.value;
 
     for(let i = SCAN_START; i <= SCAN_END; i++){
 
@@ -152,14 +160,22 @@ async function autoScan(){
             break;
 
         controllerIp.value = subnet + i;
-
-        connect();
+        connect(true);
 
         await new Promise(resolve => setTimeout(resolve, SCAN_DELAY));
 
+        // A successful connection stops the scan in connectionSuccess().
+        if(!scanning)
+            break;
+
     }
 
-    scanning = false;
+    if(scanning){
+        scanning = false;
+        controllerIp.value = originalIp;
+        statusText.textContent = "🔴 No ROS 2 node found in scan range";
+        disconnect();
+    }
 
 }
 
@@ -222,25 +238,23 @@ window.addEventListener("drone-reconnecting", reconnecting);
    Button Events
 ========================================== */
 
-// TEMPORARY: Bypass connection and enter UI directly
+// Connect to the ROS 2 UI WebSocket server.
 connectButton.addEventListener("click", () => {
-
     scanning = false;
-
-    connectionScreen.classList.remove("active");
-    flightScreen.classList.add("active");
-
-    document.querySelector("#connection-status").textContent =
-        "⚪ Offline";
-
+    connect();
 });
-
-// Original connection method (restore later)
-// connectButton.addEventListener("click", connect);
 
 scanButton.addEventListener("click", autoScan);
 disconnectButton.addEventListener("click", disconnectDrone);
 
+
+/* ==========================================
+   Default Checkbox Events
+========================================== */
+
+// Update fields immediately whenever either checkbox is toggled.
+controllerDefault.addEventListener("change", updateDefaultInputs);
+cameraDefault.addEventListener("change", updateDefaultInputs);
 
 /* ==========================================
    Initialize

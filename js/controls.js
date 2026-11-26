@@ -8,7 +8,8 @@ import{
     sendYawLeft,
     sendYawRight,
     sendArm,
-    sendDisarm
+    sendDisarm,
+    sendFaceButton
 } from "./commands.js";
 
 /* ==========================================
@@ -74,6 +75,25 @@ bindHold(downButton, sendAltitudeDown);
 
 bindHold(leftButton, sendYawLeft);
 bindHold(rightButton, sendYawRight);
+
+/* ==========================================
+   Face Buttons
+========================================== */
+
+["a", "b", "x", "y"].forEach((button)=>{
+
+    const element = document.querySelector(`#btn-${button}`);
+
+    if(!element){
+        console.error(`Face button #btn-${button} was not found.`);
+        return;
+    }
+
+    element.addEventListener("click", ()=>{
+        sendFaceButton(button);
+    });
+
+});
 
 /* ==========================================
    Arm / Disarm + Controller Button Visibility

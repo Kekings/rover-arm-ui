@@ -22,11 +22,12 @@ export function connectWebSocket(ip, port, scanning = false){
 
     scanMode = scanning;
 
+    // Remember every attempted host so auto-reconnect targets the host
+    // that was actually found during scanning as well as manual connects.
+    lastIP = ip;
+    lastPort = port;
+
     if(!scanMode){
-
-        lastIP = ip;
-        lastPort = port;
-
         manualDisconnect = false;
     }
 

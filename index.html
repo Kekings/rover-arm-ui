@@ -38,11 +38,11 @@
                 </header>
 
                 <p class="connection-subtitle">
-                    Configure your controller and camera connection.
+                    Enter the computer IP running the ROS 2 UI node (WebSocket port 5555).
                 </p>
 
                 <div class="connection-config-grid">
-                    <!-- Rover Arm Controller -->
+                    <!-- ROS 2 Controller -->
                     <div class="connection-group">
                         <h3>
                             <span class="connection-section-number">01</span>
@@ -50,7 +50,7 @@
                         </h3>
 
                         <label class="checkbox-row" for="controller-default">
-                            <input type="checkbox" id="controller-default" checked>
+                            <input type="checkbox" id="controller-default">
                             <span>Use default settings</span>
                         </label>
 
@@ -60,8 +60,8 @@
                                 <input
                                     type="text"
                                     id="controller-ip"
-                                    value="192.168.137.100"
-                                    placeholder="Controller IP">
+                                    value=""
+                                    placeholder="ROS 2 PC IP address">
                             </label>
 
                             <label class="connection-field" for="controller-port">
@@ -69,8 +69,8 @@
                                 <input
                                     type="number"
                                     id="controller-port"
-                                    value="81"
-                                    placeholder="Port">
+                                    value="5555"
+                                    placeholder="5555">
                             </label>
                         </div>
                     </div>

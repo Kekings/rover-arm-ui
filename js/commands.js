@@ -23,6 +23,26 @@ export function sendJoystick(side, x, y){
 }
 
 /* ==========================================
+   Face Buttons
+   Sends one JSON command on click using the existing type format.
+========================================== */
+
+export function sendFaceButton(button){
+
+    const allowedButtons = ["a", "b", "x", "y"];
+
+    if(!allowedButtons.includes(button)){
+        console.error("Invalid face button. Expected a, b, x, or y.", button);
+        return;
+    }
+
+    send({
+        type: button
+    });
+
+}
+
+/* ==========================================
    Altitude
 ========================================== */
 
