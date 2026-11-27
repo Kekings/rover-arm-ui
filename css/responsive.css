@@ -26,7 +26,6 @@
 
     .joystick{--joystick-size:clamp(112px, 15vw, 136px);--stick-size:clamp(41px, 5vw, 51px);}
     #dpad{width:clamp(126px, 17vw, 148px);height:clamp(126px, 17vw, 148px);}
-    .dpad-mode{font-size:6px;}
     .control-button{width:clamp(38px, 5.8vw, 44px);height:clamp(38px, 5.8vw, 44px);font-size:16px;}
     #face-buttons{width:clamp(122px, 16vw, 144px);height:clamp(122px, 16vw, 144px);}
     .face-button{width:clamp(37px, 5.2vw, 43px);height:clamp(37px, 5.2vw, 43px);}

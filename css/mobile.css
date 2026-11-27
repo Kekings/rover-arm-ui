@@ -51,7 +51,6 @@
     .joystick-label span{font-size:6px;}
 
     #dpad{width:clamp(112px, 30vh, 136px);height:clamp(112px, 30vh, 136px);}
-    .dpad-mode{font-size:6px;}
     .control-button{width:clamp(34px, 9.5vh, 41px);height:clamp(34px, 9.5vh, 41px);border-radius:9px;font-size:14px;}
     #face-buttons{width:clamp(112px, 30vh, 136px);height:clamp(112px, 30vh, 136px);}
     .face-button{width:clamp(34px, 9.3vh, 41px);height:clamp(34px, 9.3vh, 41px);font-size:11px;}

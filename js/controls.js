@@ -2,10 +2,11 @@
    Imports
 ========================================== */
 
-import {
-    sendArmNudge,
-    sendWheelYaw,
-    sendBaseRotate,
+import{
+    sendAltitudeUp,
+    sendAltitudeDown,
+    sendYawLeft,
+    sendYawRight,
     sendArm,
     sendDisarm,
     sendFaceButton
@@ -17,175 +18,69 @@ import {
 
 const upButton = document.querySelector("#btn-up");
 const downButton = document.querySelector("#btn-down");
+
 const leftButton = document.querySelector("#btn-left");
 const rightButton = document.querySelector("#btn-right");
-const modeButton = document.querySelector("#btn-mode");
 
 const armButton = document.querySelector("#btn-arm");
 const armStatusText = document.querySelector("#arm-status-text");
 
 /* ==========================================
-   D-Pad Mode
+   Helpers
 ========================================== */
-
-let dpadMode = "arm";
-
-function updateDpadMode(){
-
-    const wheelMode = dpadMode === "wheel";
-
-    modeButton.textContent = wheelMode ? "YAW" : "ARM";
-    modeButton.classList.toggle("dpad-mode--wheel", wheelMode);
-    modeButton.setAttribute("aria-pressed", String(wheelMode));
-    modeButton.setAttribute(
-        "aria-label",
-        wheelMode
-            ? "D-pad mode is wheel yaw. Activate to switch to arm positioning."
-            : "D-pad mode is arm positioning. Activate to switch to wheel yaw."
-    );
-    modeButton.title = wheelMode ? "Switch to arm positioning" : "Switch to wheel yaw";
-}
-
-modeButton.addEventListener("click", ()=>{
-    dpadMode = dpadMode === "arm" ? "wheel" : "arm";
-    updateDpadMode();
-});
-
-updateDpadMode();
 
 /* ==========================================
-   D-Pad Hold Controls
+   Hold Button
 ========================================== */
 
-const ARM_NUDGE_REPEAT_MS = 100;
-const BASE_ROTATE_REPEAT_MS = 100;
+function bindHold(button, command){
 
-function bindArmNudge(button, axis, direction){
+    let timer = null;
 
-    let repeatTimer = null;
-    let activePointerId = null;
+    button.addEventListener("pointerdown", ()=>{
 
-    function stop(event){
+        command();
 
-        if(activePointerId === null)
-            return;
+        timer = setInterval(command, 100);
 
-        if(event && event.pointerId !== undefined && event.pointerId !== activePointerId)
-            return;
-
-        if(repeatTimer){
-            clearInterval(repeatTimer);
-            repeatTimer = null;
-        }
-
-        activePointerId = null;
-    }
-
-    button.addEventListener("pointerdown", (event)=>{
-
-        if(event.pointerType === "mouse" && event.button !== 0)
-            return;
-
-        if(activePointerId !== null)
-            return;
-
-        event.preventDefault();
-        activePointerId = event.pointerId;
-
-        if(typeof button.setPointerCapture === "function"){
-            try{ button.setPointerCapture(event.pointerId); }
-            catch(error){ /* Pointer events still work without capture. */ }
-        }
-
-        const nudge = ()=>sendArmNudge(axis, direction);
-        nudge();
-        repeatTimer = setInterval(nudge, ARM_NUDGE_REPEAT_MS);
     });
 
-    button.addEventListener("pointerup", stop);
-    button.addEventListener("pointercancel", stop);
-    button.addEventListener("lostpointercapture", stop);
-    window.addEventListener("pointerup", stop);
-    window.addEventListener("pointercancel", stop);
-    window.addEventListener("blur", ()=>stop());
-}
+    function stop(){
 
-function bindHorizontalControl(button, direction){
+        if(timer){
 
-    let repeatTimer = null;
-    let activePointerId = null;
-    let actionAtPress = null;
+            clearInterval(timer);
+            timer = null;
 
-    function stop(event){
-
-        if(activePointerId === null)
-            return;
-
-        if(event && event.pointerId !== undefined && event.pointerId !== activePointerId)
-            return;
-
-        if(repeatTimer){
-            clearInterval(repeatTimer);
-            repeatTimer = null;
         }
 
-        // A wheel-yaw command is held until release, then explicitly stopped.
-        if(actionAtPress === "wheel")
-            sendWheelYaw(0);
-
-        actionAtPress = null;
-        activePointerId = null;
     }
 
-    button.addEventListener("pointerdown", (event)=>{
-
-        if(event.pointerType === "mouse" && event.button !== 0)
-            return;
-
-        if(activePointerId !== null)
-            return;
-
-        event.preventDefault();
-        activePointerId = event.pointerId;
-
-        if(typeof button.setPointerCapture === "function"){
-            try{ button.setPointerCapture(event.pointerId); }
-            catch(error){ /* Pointer events still work without capture. */ }
-        }
-
-        actionAtPress = dpadMode === "wheel" ? "wheel" : "arm";
-
-        if(actionAtPress === "wheel"){
-            // Send once on press. The explicit direction 0 on release stops yaw.
-            sendWheelYaw(direction);
-        } else {
-            const nudge = ()=>sendArmNudge("x", direction);
-            nudge();
-            repeatTimer = setInterval(nudge, ARM_NUDGE_REPEAT_MS);
-        }
-    });
-
     button.addEventListener("pointerup", stop);
+    button.addEventListener("pointerleave", stop);
     button.addEventListener("pointercancel", stop);
-    button.addEventListener("lostpointercapture", stop);
-    window.addEventListener("pointerup", stop);
-    window.addEventListener("pointercancel", stop);
-    window.addEventListener("blur", ()=>stop());
+
 }
 
-// Up/down always make small arm Y-position adjustments.
-bindArmNudge(upButton, "y", 1);
-bindArmNudge(downButton, "y", -1);
+/* ==========================================
+   Altitude
+========================================== */
 
-// Left/right adjust arm X in ARM mode, or hold rover yaw in WHEEL mode.
-bindHorizontalControl(leftButton, -1);
-bindHorizontalControl(rightButton, 1);
+bindHold(upButton, sendAltitudeUp);
+bindHold(downButton, sendAltitudeDown);
+
+/* ==========================================
+   Yaw
+========================================== */
+
+bindHold(leftButton, sendYawLeft);
+bindHold(rightButton, sendYawRight);
 
 /* ==========================================
    Face Buttons
 ========================================== */
 
-["a", "b"].forEach((button)=>{
+["a", "b", "x", "y"].forEach((button)=>{
 
     const element = document.querySelector(`#btn-${button}`);
 
@@ -194,62 +89,11 @@ bindHorizontalControl(rightButton, 1);
         return;
     }
 
-    element.addEventListener("click", ()=>sendFaceButton(button));
-});
-
-function bindBaseRotate(button, direction){
-
-    let repeatTimer = null;
-    let activePointerId = null;
-
-    function stop(event){
-
-        if(activePointerId === null)
-            return;
-
-        if(event && event.pointerId !== undefined && event.pointerId !== activePointerId)
-            return;
-
-        if(repeatTimer){
-            clearInterval(repeatTimer);
-            repeatTimer = null;
-        }
-
-        activePointerId = null;
-    }
-
-    button.addEventListener("pointerdown", (event)=>{
-
-        if(event.pointerType === "mouse" && event.button !== 0)
-            return;
-
-        if(activePointerId !== null)
-            return;
-
-        event.preventDefault();
-        activePointerId = event.pointerId;
-
-        if(typeof button.setPointerCapture === "function"){
-            try{ button.setPointerCapture(event.pointerId); }
-            catch(error){ /* Pointer events still work without capture. */ }
-        }
-
-        const rotate = ()=>sendBaseRotate(direction);
-        rotate();
-        repeatTimer = setInterval(rotate, BASE_ROTATE_REPEAT_MS);
+    element.addEventListener("click", ()=>{
+        sendFaceButton(button);
     });
 
-    button.addEventListener("pointerup", stop);
-    button.addEventListener("pointercancel", stop);
-    button.addEventListener("lostpointercapture", stop);
-    window.addEventListener("pointerup", stop);
-    window.addEventListener("pointercancel", stop);
-    window.addEventListener("blur", ()=>stop());
-}
-
-// X/Y rotate the base while held. A/B open and close the gripper once per click.
-bindBaseRotate(document.querySelector("#btn-x"), -1);
-bindBaseRotate(document.querySelector("#btn-y"), 1);
+});
 
 /* ==========================================
    Arm / Disarm + Controller Button Visibility
