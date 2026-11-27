@@ -552,18 +552,18 @@
             <!-- ================= Rover Arm Gamepad ================= -->
             <div id="gamepad-shell" aria-label="Rover Arm gamepad controls">
 
-                <!-- Left controller half: base/gripper D-pad + wrist stick -->
+                <!-- Left controller half: arm precision D-pad + arm joystick -->
                 <div id="left-panel" class="gamepad-side gamepad-side--left">
-                    <div id="dpad" aria-label="Base and gripper directional controls" aria-hidden="false">
-                        <button type="button" class="control-button" id="btn-up" aria-label="Move up">▲</button>
-                        <button type="button" class="control-button" id="btn-left" aria-label="Move left">◀</button>
-                        <div class="dpad-hub" aria-hidden="true"></div>
-                        <button type="button" class="control-button" id="btn-right" aria-label="Move right">▶</button>
-                        <button type="button" class="control-button" id="btn-down" aria-label="Move down">▼</button>
+                    <div id="dpad" aria-label="Arm positioning and rover yaw controls" aria-hidden="false">
+                        <button type="button" class="control-button" id="btn-up" aria-label="Nudge arm position upward">▲</button>
+                        <button type="button" class="control-button" id="btn-left" aria-label="Nudge arm left in ARM mode or rotate rover left in YAW mode">◀</button>
+                        <button type="button" class="dpad-hub dpad-mode-toggle" id="btn-dpad-mode" aria-pressed="false" aria-label="ARM mode. Switch horizontal controls to rover yaw">ARM</button>
+                        <button type="button" class="control-button" id="btn-right" aria-label="Nudge arm right in ARM mode or rotate rover right in YAW mode">▶</button>
+                        <button type="button" class="control-button" id="btn-down" aria-label="Nudge arm position downward">▼</button>
                     </div>
 
                     <div class="joystick-block joystick-block--left">
-                        <div id="left-joystick" class="joystick" data-joystick-side="l" aria-label="Left joystick, wrist positioning">
+                        <div id="left-joystick" class="joystick" data-joystick-side="l" aria-label="Left joystick, robotic arm wrist positioning">
                             <div class="joystick-ring">
                                 <div class="joystick-base">
                                     <div class="joystick-guide"></div>
@@ -571,11 +571,11 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="joystick-label">LEFT STICK <span>WRIST X / Y</span></span>
+                        <span class="joystick-label">LEFT STICK <span>ARM / WRIST X / Y</span></span>
                     </div>
                 </div>
 
-                <!-- Centre controls: CARF branding and existing arm/disarm control -->
+                <!-- Centre controls: CARF branding and existing arm/disarm control (kept separate from D-pad mode toggle) -->
                 <div id="controller-center">
                     <div class="gamepad-brand">
                         <span class="gamepad-brand-mark">CARF</span>
@@ -590,17 +590,17 @@
 
                 </div>
 
-                <!-- Right controller half: future face buttons + second joystick -->
+                <!-- Right controller half: gripper/base buttons + rover drive joystick -->
                 <div id="right-panel" class="gamepad-side gamepad-side--right">
-                    <div id="face-buttons" aria-label="Additional programmable buttons">
-                        <button type="button" class="face-button face-button--y" id="btn-y" aria-label="Y button, unassigned">Y</button>
-                        <button type="button" class="face-button face-button--x" id="btn-x" aria-label="X button, unassigned">X</button>
-                        <button type="button" class="face-button face-button--b" id="btn-b" aria-label="B button, unassigned">B</button>
-                        <button type="button" class="face-button face-button--a" id="btn-a" aria-label="A button, unassigned">A</button>
+                    <div id="face-buttons" aria-label="Gripper and arm base rotation controls">
+                        <button type="button" class="face-button face-button--y" id="btn-y" aria-label="Rotate arm base right while pressed">Y</button>
+                        <button type="button" class="face-button face-button--x" id="btn-x" aria-label="Rotate arm base left while pressed">X</button>
+                        <button type="button" class="face-button face-button--b" id="btn-b" aria-label="Open gripper">B</button>
+                        <button type="button" class="face-button face-button--a" id="btn-a" aria-label="Close gripper">A</button>
                     </div>
 
                     <div class="joystick-block joystick-block--right">
-                        <div id="right-joystick" class="joystick" data-joystick-side="r" aria-label="Right joystick, auxiliary positioning">
+                        <div id="right-joystick" class="joystick" data-joystick-side="r" aria-label="Right joystick, rover driving and steering">
                             <div class="joystick-ring">
                                 <div class="joystick-base">
                                     <div class="joystick-guide"></div>
@@ -608,7 +608,7 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="joystick-label">RIGHT STICK <span>AUXILIARY X / Y</span></span>
+                        <span class="joystick-label">RIGHT STICK <span>ROVER DRIVE / STEER</span></span>
                     </div>
                 </div>
             </div>

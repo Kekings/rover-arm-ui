@@ -3,13 +3,12 @@
 ========================================== */
 
 import{
-    sendAltitudeUp,
-    sendAltitudeDown,
-    sendYawLeft,
-    sendYawRight,
+    sendArmNudge,
+    sendWheelYaw,
+    sendGripper,
+    sendBaseRotate,
     sendArm,
-    sendDisarm,
-    sendFaceButton
+    sendDisarm
 } from "./commands.js";
 
 /* ==========================================
@@ -18,82 +17,218 @@ import{
 
 const upButton = document.querySelector("#btn-up");
 const downButton = document.querySelector("#btn-down");
-
 const leftButton = document.querySelector("#btn-left");
 const rightButton = document.querySelector("#btn-right");
+const modeButton = document.querySelector("#btn-dpad-mode");
 
 const armButton = document.querySelector("#btn-arm");
 const armStatusText = document.querySelector("#arm-status-text");
 
-/* ==========================================
-   Helpers
-========================================== */
+const HOLD_REPEAT_MS = 100;
+let controlMode = "arm"; // "arm" or "yaw"
+const activeControlStops = new Set();
+
+function isPrimaryPointer(event){
+    return !(event.pointerType === "mouse" && event.button !== 0);
+}
+
+/* Keep a held control safe when the page loses focus or is hidden. */
+function stopAllActiveControls(){
+    [...activeControlStops].forEach(stop => stop());
+}
+
+window.addEventListener("blur", stopAllActiveControls);
+document.addEventListener("visibilitychange", ()=>{
+    if(document.hidden)
+        stopAllActiveControls();
+});
 
 /* ==========================================
-   Hold Button
+   Repeating Button: arm nudges / base rotation
 ========================================== */
 
-function bindHold(button, command){
+function bindRepeat(button, command){
 
-    let timer = null;
-
-    button.addEventListener("pointerdown", ()=>{
-
-        command();
-
-        timer = setInterval(command, 100);
-
-    });
-
-    function stop(){
-
-        if(timer){
-
-            clearInterval(timer);
-            timer = null;
-
-        }
-
+    if(!button){
+        console.error("A repeating control button is missing.");
+        return;
     }
 
-    button.addEventListener("pointerup", stop);
-    button.addEventListener("pointerleave", stop);
-    button.addEventListener("pointercancel", stop);
+    let activePointerId = null;
+    let repeatTimer = null;
+
+    function stop(event){
+        if(activePointerId === null)
+            return;
+
+        if(event && event.pointerId !== undefined && event.pointerId !== activePointerId)
+            return;
+
+        if(repeatTimer){
+            clearInterval(repeatTimer);
+            repeatTimer = null;
+        }
+
+        activePointerId = null;
+        activeControlStops.delete(stop);
+    }
+
+    function start(event){
+        if(!isPrimaryPointer(event) || activePointerId !== null)
+            return;
+
+        event.preventDefault();
+        activePointerId = event.pointerId;
+
+        if(typeof button.setPointerCapture === "function"){
+            try{
+                button.setPointerCapture(event.pointerId);
+            } catch(error){
+                // Window-level pointerup/cancel listeners remain as fallback.
+            }
+        }
+
+        command();
+        repeatTimer = setInterval(command, HOLD_REPEAT_MS);
+        activeControlStops.add(stop);
+    }
+
+    button.addEventListener("pointerdown", start);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    button.addEventListener("lostpointercapture", stop);
 
 }
 
 /* ==========================================
-   Altitude
+   Horizontal D-Pad: ARM nudges or continuous rover yaw
 ========================================== */
 
-bindHold(upButton, sendAltitudeUp);
-bindHold(downButton, sendAltitudeDown);
+function bindHorizontal(button, direction){
+
+    if(!button){
+        console.error("A horizontal D-pad button is missing.");
+        return;
+    }
+
+    let activePointerId = null;
+    let repeatTimer = null;
+    let yawModeActive = false;
+
+    function stop(event){
+        if(activePointerId === null)
+            return;
+
+        if(event && event.pointerId !== undefined && event.pointerId !== activePointerId)
+            return;
+
+        if(repeatTimer){
+            clearInterval(repeatTimer);
+            repeatTimer = null;
+        }
+
+        if(yawModeActive){
+            sendWheelYaw(0);
+            yawModeActive = false;
+        }
+
+        activePointerId = null;
+        activeControlStops.delete(stop);
+    }
+
+    function start(event){
+        if(!isPrimaryPointer(event) || activePointerId !== null)
+            return;
+
+        event.preventDefault();
+        activePointerId = event.pointerId;
+
+        if(typeof button.setPointerCapture === "function"){
+            try{
+                button.setPointerCapture(event.pointerId);
+            } catch(error){
+                // Window-level pointerup/cancel listeners remain as fallback.
+            }
+        }
+
+        if(controlMode === "yaw"){
+            yawModeActive = true;
+            sendWheelYaw(direction);
+        } else {
+            const nudge = () => sendArmNudge("x", direction);
+            nudge();
+            repeatTimer = setInterval(nudge, HOLD_REPEAT_MS);
+        }
+
+        activeControlStops.add(stop);
+    }
+
+    button.addEventListener("pointerdown", start);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+    button.addEventListener("lostpointercapture", stop);
+
+}
 
 /* ==========================================
-   Yaw
+   Directional Button Mapping
 ========================================== */
 
-bindHold(leftButton, sendYawLeft);
-bindHold(rightButton, sendYawRight);
+// UP / DOWN always make small arm Y-position adjustments.
+bindRepeat(upButton, ()=>sendArmNudge("y", 1));
+bindRepeat(downButton, ()=>sendArmNudge("y", -1));
+
+// LEFT / RIGHT change function according to the centre D-pad mode.
+bindHorizontal(leftButton, -1);
+bindHorizontal(rightButton, 1);
+
+/* ==========================================
+   D-Pad Mode Toggle
+========================================== */
+
+function updateModeButton(){
+
+    if(!modeButton)
+        return;
+
+    const yawMode = controlMode === "yaw";
+
+    modeButton.textContent = yawMode ? "YAW" : "ARM";
+    modeButton.classList.toggle("yaw-mode", yawMode);
+    modeButton.setAttribute("aria-pressed", String(yawMode));
+    modeButton.setAttribute(
+        "aria-label",
+        yawMode
+            ? "YAW mode. Click to switch horizontal controls to arm positioning"
+            : "ARM mode. Click to switch horizontal controls to rover yaw"
+    );
+    modeButton.title = yawMode ? "Horizontal buttons: rover yaw" : "Horizontal buttons: arm X positioning";
+
+}
+
+if(modeButton){
+    modeButton.addEventListener("click", ()=>{
+        stopAllActiveControls();
+        controlMode = controlMode === "arm" ? "yaw" : "arm";
+        updateModeButton();
+    });
+} else {
+    console.error("D-pad mode toggle #btn-dpad-mode was not found.");
+}
+
+updateModeButton();
 
 /* ==========================================
    Face Buttons
 ========================================== */
 
-["a", "b", "x", "y"].forEach((button)=>{
+// A closes the gripper; B opens it.
+document.querySelector("#btn-a")?.addEventListener("click", ()=>sendGripper("close"));
+document.querySelector("#btn-b")?.addEventListener("click", ()=>sendGripper("open"));
 
-    const element = document.querySelector(`#btn-${button}`);
-
-    if(!element){
-        console.error(`Face button #btn-${button} was not found.`);
-        return;
-    }
-
-    element.addEventListener("click", ()=>{
-        sendFaceButton(button);
-    });
-
-});
+// X rotates the base left; Y rotates the base right while held.
+bindRepeat(document.querySelector("#btn-x"), ()=>sendBaseRotate(-1));
+bindRepeat(document.querySelector("#btn-y"), ()=>sendBaseRotate(1));
 
 /* ==========================================
    Arm / Disarm + Controller Button Visibility

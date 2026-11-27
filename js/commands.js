@@ -18,8 +18,7 @@ export function sendJoystick(side, x, y){
     const safeX = Math.max(-100, Math.min(100, Math.round(Number(x) || 0)));
     const safeY = Math.max(-100, Math.min(100, Math.round(Number(y) || 0)));
 
-    // Send both sticks as JSON so the ROS 2 node can parse every message.
-    // The side field preserves which joystick generated this reading.
+    // "l" is the arm joystick; "r" is the rover drive/steering joystick.
     send({
         type: "joystick",
         side: side,
@@ -27,6 +26,75 @@ export function sendJoystick(side, x, y){
         y: safeY
     });
 }
+
+/* ==========================================
+   Generic Control Commands
+========================================== */
+
+function sendControl(target, action, fields = {}){
+
+    send({
+        type: "control",
+        target,
+        action,
+        ...fields
+    });
+
+}
+
+/* Arm Cartesian nudge: axis "x" or "y", direction -1 or +1. */
+export function sendArmNudge(axis, direction){
+
+    if(!["x", "y"].includes(axis) || ![-1, 1].includes(direction)){
+        console.error("Invalid arm nudge. Expected axis x/y and direction -1/+1.");
+        return;
+    }
+
+    sendControl("arm", "nudge", {axis, direction});
+
+}
+
+/* Rover yaw: direction -1 (left), +1 (right), or 0 (stop). */
+export function sendWheelYaw(direction){
+
+    if(![-1, 0, 1].includes(direction)){
+        console.error("Invalid wheel yaw direction. Expected -1, 0, or +1.");
+        return;
+    }
+
+    sendControl("wheels", "yaw", {direction});
+
+}
+
+/* Gripper is commanded once per click. */
+export function sendGripper(state){
+
+    if(state !== "open" && state !== "close"){
+        console.error("Invalid gripper state. Expected open or close.");
+        return;
+    }
+
+    sendControl("arm", "gripper", {state});
+
+}
+
+/* Base rotation is sent repeatedly while X or Y is held. */
+export function sendBaseRotate(direction){
+
+    if(![-1, 1].includes(direction)){
+        console.error("Invalid base rotation direction. Expected -1 or +1.");
+        return;
+    }
+
+    sendControl("arm", "base_rotate", {direction});
+
+}
+
+/* ==========================================
+   Legacy Command Helpers
+   Retained for compatibility with any existing imports.
+   The remapped controller above uses the generic "control" messages.
+========================================== */
 
 /* ==========================================
    Face Buttons
@@ -111,6 +179,7 @@ export function sendEmergencyStop(){
     });
 
 }
+
 
 /* ==========================================
    Arm / Disarm
