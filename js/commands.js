@@ -1,5 +1,6 @@
 /* ==========================================
-   Imports
+   Rover UI Commands
+   All browser-to-ROS 2 messages use JSON.
 ========================================== */
 
 import {send} from "./websocket.js";
@@ -18,118 +19,111 @@ export function sendJoystick(side, x, y){
     const safeX = Math.max(-100, Math.min(100, Math.round(Number(x) || 0)));
     const safeY = Math.max(-100, Math.min(100, Math.round(Number(y) || 0)));
 
-    // Send both sticks as JSON so the ROS 2 node can parse every message.
-    // The side field preserves which joystick generated this reading.
     send({
         type: "joystick",
-        side: side,
+        side,
         x: safeX,
         y: safeY
     });
 }
 
 /* ==========================================
-   Face Buttons
-   Sends one JSON command on click using the existing type format.
+   Generic Control Commands
 ========================================== */
 
-export function sendFaceButton(button){
+export function sendControl(target, action, details = {}){
 
-    const allowedButtons = ["a", "b", "x", "y"];
-
-    if(!allowedButtons.includes(button)){
-        console.error("Invalid face button. Expected a, b, x, or y.", button);
+    if(!target || !action){
+        console.error("Control command requires a target and action.");
         return;
     }
 
     send({
-        type: button
+        ...details,
+        type: "control",
+        target,
+        action
     });
+}
 
+export function sendArmNudge(axis, direction){
+
+    if(axis !== "x" && axis !== "y"){
+        console.error("Invalid arm nudge axis. Expected x or y.", axis);
+        return;
+    }
+
+    if(direction !== -1 && direction !== 1){
+        console.error("Invalid arm nudge direction. Expected -1 or 1.", direction);
+        return;
+    }
+
+    sendControl("arm", "nudge", {axis, direction});
+}
+
+export function sendWheelYaw(direction){
+
+    if(![-1, 0, 1].includes(direction)){
+        console.error("Invalid wheel yaw direction. Expected -1, 0, or 1.", direction);
+        return;
+    }
+
+    sendControl("wheels", "yaw", {direction});
 }
 
 /* ==========================================
-   Altitude
+   Face Buttons
 ========================================== */
 
-export function sendAltitudeUp(){
+export function sendFaceButton(button){
 
-    send({
-        type: "altitude_up"
-    });
+    const commands = {
+        a: {target: "arm", action: "gripper", state: "close"},
+        b: {target: "arm", action: "gripper", state: "open"}
+    };
 
+    const command = commands[button];
+
+    if(!command){
+        console.error("Invalid face button. Expected a, b, x, or y.", button);
+        return;
+    }
+
+    sendControl(command.target, command.action, {state: command.state});
 }
 
-export function sendAltitudeDown(){
+export function sendBaseRotate(direction){
 
-    send({
-        type: "altitude_down"
-    });
+    if(direction !== -1 && direction !== 1){
+        console.error("Invalid base rotation direction. Expected -1 or 1.", direction);
+        return;
+    }
 
-}
-
-/* ==========================================
-   Yaw
-========================================== */
-
-export function sendYawLeft(){
-
-    send({
-        type: "yaw_left"
-    });
-
-}
-
-export function sendYawRight(){
-
-    send({
-        type: "yaw_right"
-    });
-
+    sendControl("arm", "base_rotate", {direction});
 }
 
 /* ==========================================
-   Land
+   Existing System Commands
 ========================================== */
 
 export function sendLand(){
-
-    send({
-        type: "land"
-    });
-
+    send({type: "land"});
 }
-
-/* ==========================================
-   Emergency Stop
-========================================== */
 
 export function sendEmergencyStop(){
-
-    send({
-        type: "emergency_stop"
-    });
-
+    send({type: "emergency_stop"});
 }
 
-/* ==========================================
-   Arm / Disarm
-========================================== */
-
 export function sendArm(){
-
     send({
         type: "flight",
         action: "arm"
     });
-
 }
 
 export function sendDisarm(){
-
     send({
         type: "flight",
         action: "disarm"
     });
-
 }
